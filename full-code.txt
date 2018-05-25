@@ -1,0 +1,456 @@
+import sys
+from tkinter import *
+import random
+from PIL import ImageTk
+from tkinter import messagebox
+import time
+from threading import Thread
+import serial
+import xlrd
+import openpyxl
+
+
+
+
+
+cast_vote = 0
+cast_vote1 = 0
+cast_vote2 = 0
+
+pmln_votes = 0
+pti_votes= 0
+ppp_votes = 0
+
+hollywood_votes = 0
+bollywood_votes= 0
+lollywood_votes= 0
+
+lab1_votes=0
+lab2_votes=0
+lab3_votes=0
+
+vote=0
+
+
+class Welcome():
+
+    def __init__(self,master):
+        C = Canvas(master)
+        C.pack(expand=True, fill=BOTH)
+        image1 = ImageTk.PhotoImage(file="pic11.gif")
+        C.img=image1
+        C.create_image(0,0, anchor=NW, image=image1)
+        
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('WELCOME WINDOW')
+        localtime=time.asctime(time.localtime(time.time()))
+        self.label1=Label(C,font=('arial',24,'bold'),text="WELCOME TO BIOMETRIC VOTING SYSTEM",fg='blue',anchor='w').pack(side="top", padx=4, pady=4)
+        self.label1=Label(C,font=('arial',24,'bold'),text=localtime,fg='blue',anchor='w').pack(side="top", padx=5, pady=4)
+        self.label1=Label(C,font=('arial',16,'bold'),text="Click Enter Button to continue",fg='blue',anchor='w' ).pack(side="top", padx=6, pady=4)
+
+        self.button2=Button(C,font=('arial',14,'bold'),text="Enter",fg='blue',command= self.goto)
+        photo1=ImageTk.PhotoImage(file="enter.jpg")           
+        self.button2.config(image=photo1,width="195",height="64")  
+        self.button2.place(relx=0.5, rely=0.5,anchor=CENTER)
+        C.create_window(390,180, window=self.button2, anchor=CENTER)
+       
+        self.button3=Button(C,font=('arial',12,'bold'),text="Quit",fg='blue', command= self.myquit)
+        photo=ImageTk.PhotoImage(file="exit.jpg")                   
+        self.button3.config(image=photo,width="190",height="70")  
+        self.button3.place(relx=0.5, rely=0.5,anchor=SE)                                     
+        C.create_window(798,450, window=self.button3, anchor=SE)
+        
+        master.mainloop()        
+
+                 #-----------------------------------------------------------------#--------------------------------------------------------------------#
+    def goto(self):
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Confirmation(root2)
+
+    def myquit(self):
+        self.master.destroy()
+
+
+class Confirmation():
+    def __init__(self,master):
+
+        cwgt=Canvas(master)
+        cwgt.pack(expand=True, fill=BOTH)
+        image1=PhotoImage(file="pic11.gif")
+        cwgt.img=image1
+        cwgt.create_image(0, 0, anchor=NW, image=image1)
+        b1=Button(cwgt, text="", bd=0)
+        cwgt.create_window(20,20,window=b1, anchor=NW)
+        v = IntVar()
+        self.buttonstr = StringVar()
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('Confirmatoin Window')
+        localtime=time.asctime(time.localtime(time.time()))
+        self.label1=Label(cwgt,font=('arial',24,'bold'),text=localtime,fg='blue',anchor='w').pack(side="top", padx=4, pady=4)
+        self.label=Label(cwgt,font=('arial',26,'bold'),text="Press your finger on FINGERPRINT Scanner",fg='blue',anchor='w').pack(side="top", padx=5, pady=4)
+        #self.button2=Button(cwgt,font=('arial',12,'bold'),text="Jump to next",fg='blue',command=self.jump).pack( side="top",padx=2, pady=0)
+        #records = {12: ['Muhammad Osama Shahzad','32304-6181218-7'],7: ['Ahtesham Zafar','32304-6181218-7']}
+        #self.label21=Label(cwgt,font=('arial',16,'bold'),text=records[12][0]+"("+records[12][1]+")",fg='blue',anchor='w' ).pack(side="top", padx=6, pady=4)
+        #self.label31=Label(cwgt,font=('arial',16,'bold'),text="CNIC:"+records[12][1],fg='blue',anchor='w' ).pack(side="top", padx=6, pady=4)
+        t1 = Thread(target=self.serial_input_wait,args=())
+        t1.start()
+        #t1.join()
+            
+                #print (data, end="")
+               
+    def jump(self):
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        
+        myGUI=NEXT(root2)
+    
+                
+        
+        #self.jump()
+        #------------------------------------------------#-------------------------------------------------#
+            
+    def serial_input_wait(self):
+        file_location = "/home/pi/Desktop/New/datasheet_of_voters.xlsx"
+        workbook = xlrd.open_workbook(file_location)
+        workbook1 = xlrd.open_workbook('/home/pi/Desktop/New/checking_of_voters.xlsx')
+        wb = openpyxl.load_workbook('/home/pi/Desktop/New/checking_of_voters.xlsx')
+
+        sheet = workbook.sheet_by_index(0)
+        sheet1 = workbook1.sheet_by_index(0)
+        sheet_wr = wb.active
+        global vote
+        #global check
+        #global sheet1
+        ser=serial.Serial('/dev/ttyAMA0', baudrate=9600, parity=serial.PARITY_NONE,stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS,timeout=1)
+        while True:
+            if ser.inWaiting()>0:
+                data=ser.read(3)
+                za=int(data.decode('utf-8'))
+                print('finger value',za)
+                check=sheet1.nrows -1
+                print('rows value',check)
+                
+                x=0
+                while (x<check) and (za!=(int(sheet1.cell_value(x,0)))):
+                    print('cell value ',int(sheet1.cell_value(x,0)))
+                    x=x+1
+                    print('x in loop',x)
+                    continue
+            
+           
+                
+                print('before comparing ',x)
+                print ('printing ',(int(sheet1.cell_value(x,0))))
+                #x=x-1
+                if za==(int(sheet1.cell_value(x,0))) :
+                    print ('vote casted')
+                    root2=Toplevel(self.master)
+                    self.master.withdraw()
+                    myGUI=dual_vote(root2)
+        
+                else:
+                    print ('welcome')
+                    
+            
+        
+                if za == 222:
+                    print('Timeout')
+                    print (za, end="")
+                    root2=Toplevel(self.master)
+                    self.master.withdraw()
+                    myGUI=Error_Window(root2)
+                    #root2=Toplevel(self.master)
+                    #myGUI=Welcome(root2)
+                    
+                else:
+                     vote =(int(float(za)))
+                     #print (za, end="")
+                     self.jump()                
+            
+
+class NEXT():
+    def __init__(self,master):
+        global vote
+         #global check
+        print(type(vote))
+        cwgt=Canvas(master)
+        cwgt.pack(expand=True, fill=BOTH)
+        image1=PhotoImage(file="pic11.gif")
+        cwgt.img=image1
+        cwgt.create_image(0, 0, anchor=NW, image=image1)
+        b1=Button(cwgt, text="", bd=0)
+        cwgt.create_window(0,20,window=b1, anchor=NW)
+        v = IntVar()
+        self.buttonstr = StringVar()
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('Confirmatoin Window')
+        file_location = "/home/pi/Desktop/New/datasheet_of_voters.xlsx"
+        workbook = xlrd.open_workbook(file_location)
+        workbook1 = xlrd.open_workbook('/home/pi/Desktop/New/checking_of_voters.xlsx')
+        wb = openpyxl.load_workbook('/home/pi/Desktop/New/checking_of_voters.xlsx')
+
+        sheet = workbook.sheet_by_index(0)
+        sheet1 = workbook1.sheet_by_index(0)
+        sheet_wr = wb.active
+        
+        my_var_datasheet=vote-1
+                
+        #print(type(my_var_datasheet))
+        self.label3=Label(cwgt,font=('arial',16,'bold'),text=sheet.cell_value(my_var_datasheet,0)+"\n(CNIC:\n"+str(sheet.cell_value(my_var_datasheet,1))+")\n\n(Fathers Name : "+sheet.cell_value(my_var_datasheet,2)+")\t      \n",fg='blue',anchor='w' ).pack(side="top", padx=6, pady=4)
+        
+        
+        self.button2=Button(cwgt,font=('arial',12,'bold'),text="Proceed",fg='green',command=self.cons).place(relx=0.9, rely=0.5,anchor=SE)
+        j=sheet1.nrows
+        j=j+1
+        print('J val',j)
+        k=str(j)
+        string='A'+k
+        string1='B'+k
+        string2='C'+k
+        string3='D'+k
+        
+        name_of_voter=sheet.cell_value(my_var_datasheet,0)
+        Father_of_voter=sheet.cell_value(my_var_datasheet,2)
+        CNIC_of_voter=sheet.cell_value(my_var_datasheet,1)
+        
+        sheet_wr[string] = vote
+        sheet_wr[string1] = name_of_voter
+        sheet_wr[string2] = CNIC_of_voter
+        sheet_wr[string3] = Father_of_voter
+        
+        sheet1.nrows=sheet1.nrows + 1
+
+        
+        wb.save('/home/pi/Desktop/New/checking_of_voters.xlsx')
+        
+        #check=check+1
+        
+        master.mainloop()
+                          #-------------------------------------------------------#-----------------------------------------#
+
+    def cons(self):
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Constituency(root2)
+class Constituency():
+    def __init__(self,master):
+
+        cwgt=Canvas(master)
+        cwgt.pack(expand=True, fill=BOTH)
+        image1=PhotoImage(file="pic11.gif")
+        cwgt.img=image1
+        cwgt.create_image(0, 0, anchor=NW, image=image1)
+        b1=Button(cwgt, text="", bd=0)
+        cwgt.create_window(20,20,window=b1, anchor=NW)
+        v = IntVar()
+        self.buttonstr = StringVar()
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('Confirmatoin Window')
+        localtime=time.asctime(time.localtime(time.time()))
+        self.label1=Label(cwgt,font=('arial',38,'bold'),text="Vote For:",fg='blue',anchor='w').place(relx=0.45, rely=0.1,anchor=CENTER)
+
+        self.button2=Button(cwgt,font=('arial',14,'bold'),text="pti",fg='blue',command=self.two)
+        photo2=ImageTk.PhotoImage(file="pti.jpg")           
+        self.button2.config(image=photo2,width="216",height="135")  
+        self.button2.place(relx=0.5, rely=0.5,anchor=CENTER)
+        cwgt.create_window(130,210, window=self.button2, anchor=CENTER)
+        
+        self.button2=Button(cwgt,font=('arial',14,'bold'),text="Enter",fg='blue',command=self.three)
+        photo3=ImageTk.PhotoImage(file="PPP.jpg")           
+        self.button2.config(image=photo3,width="216",height="135")  
+        self.button2.place(relx=0.5, rely=0.5,anchor=CENTER)
+        cwgt.create_window(390,210, window=self.button2, anchor=CENTER)
+
+        self.button2=Button(cwgt,font=('arial',14,'bold'),text="Enter",fg='blue',command=self.one)
+        photo4=ImageTk.PhotoImage(file="pmln.jpg")           
+        self.button2.config(image=photo4,width="215",height="135")  
+        self.button2.place(relx=0.5, rely=0.5,anchor=CENTER)
+        cwgt.create_window(650,210, window=self.button2, anchor=CENTER)
+
+        master.mainloop()
+
+#----------------------------------------------------#-----------------------------------------------------------------------#
+    #def goto():
+     #   print( "helloo")
+      #  root=Tk()                                     
+      #  b=Button(root,justify = LEFT,command= goto)                 
+#photo=ImageTk.PhotoImage(file="q.jpg")           
+#b.config(image=photo,width="40",height="40") 
+#b.place(relx=0.5, rely=0.5, anchor=CENTER)
+#root.mainloop() 
+
+
+#-------------------------------------------------------------#-------------------------------------------------------------------#
+
+    def one(self):
+        global cast_vote       
+        global pmln_votes
+        
+        pmln_votes+=1
+        cast_vote+=1
+        #result = messagebox.askyesno('Python','You have successfully cast vote.Would you like to cast another Vote?')
+   
+        #if result==True:            
+         #   root2=Toplevel(self.master)
+          #  self.master.withdraw()
+           # myGUI=Welcome(root2)
+        #else:
+         #   print ('PMLN votes: '), pmln_votes,('| PTI votes: '), pti_votes,( 'PPP_votes'),ppp_votes
+          #  print ('You want to cast ANother Vote',)
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Last_Window(root2)
+        
+    def two(self):
+        global cast_vote
+        global pti_votes
+        pti_votes+=1
+        cast_vote+=1
+       # result = messagebox.askyesno('Python','You have successfully cast vote.Would you like to cast another Vote?')
+   
+        #if result==True:   
+           # root2=Toplevel(self.master)
+            #self.master.withdraw()
+            #myGUI=Welcome(root2)
+        #else:
+         #   print ('PMLN votes: '), pmln_votes,('| PTI votes: '), pti_votes,( '| PPP_votes'),ppp_votes
+          #  print ('You want to cast ANother Vote',)
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Last_Window(root2)
+
+    def three(self):
+        global cast_vote
+        global ppp_votes
+        ppp_votes+=1
+        cast_vote+=1
+        #result = messagebox.askyesno('Python','You have successfully cast vote.Would you like to cast another Vote?')
+   
+        #if result==True:
+            
+         #   root2=Toplevel(self.master)
+          #  self.master.withdraw()
+           # myGUI=Welcome(root2)
+        #else:
+         #   print ('PMLN votes: '), pmln_votes,('| PTI votes: '), pti_votes,( '| PPP_votes'),ppp_votes
+          #  print ('You want to cast ANother Vote',)
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Last_Window(root2)
+class Results():
+    def __init__(self,master):
+        self.master=master
+        global cast_vote
+        global cast_vote1
+        global cast_vote2
+        
+        global pmln_votes
+        global pti_votes
+        global ppp_votes
+
+        print ( '\n PMLN Votes :' + str(pmln_votes)),
+        print ( '\n PTI Votes :' + str(pti_votes)),
+        print ( '\n PPP Votes :' + str(ppp_votes)),
+        print ( '\nTotal number of vote cast :' + str(cast_vote)),
+        
+
+        if str(pmln_votes)>str(pti_votes) and str(pmln_votes)>str(ppp_votes):
+           print ('\n\t\t\t\t PMLN Won the Elections\n'),
+        else:
+            if str(pti_votes)>str(pmln_votes) and str(pti_votes)>str(ppp_votes):
+               print ('\n\t\t\t\t PTI Won the Elections\n'),
+            else:
+                 if str(ppp_votes)>str(pti_votes) and str(ppp_votes)>str(pmln_votes):
+                    print ('\n\t\t\t\t PPP Won the Elections\n'),   
+                 else:    
+                        print('\n\t\t\t\t There is a Tie')
+
+        self.master.destroy()
+
+class   Error_Window():
+
+    def __init__(self,master):
+        C = Canvas(master)
+        C.pack(expand=True, fill=BOTH)
+        image1 = ImageTk.PhotoImage(file="pic11.gif")
+        C.img=image1
+        C.create_image(0,0, anchor=NW, image=image1)
+        
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('WELCOME WINDOW')
+        localtime=time.asctime(time.localtime(time.time()))
+        self.label1=Label(C,font=('arial',24,'bold'),text="Name Not Found",fg='blue',anchor='w').pack(side="top", padx=4, pady=4)
+        self.button2=Button(C,font=('arial',18,'bold'),text="Retry",fg='green',command=self.retry).place(relx=0.6, rely=0.4,anchor=SE)        
+        master.mainloop()       
+               
+    def retry(self):
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Welcome(root2)
+        
+class   dual_vote():
+
+    def __init__(self,master):
+        C = Canvas(master)
+        C.pack(expand=True, fill=BOTH)
+        image1 = ImageTk.PhotoImage(file="pic11.gif")
+        C.img=image1
+        C.create_image(0,0, anchor=NW, image=image1)
+        
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('WELCOME WINDOW')
+        localtime=time.asctime(time.localtime(time.time()))
+        self.label1=Label(C,font=('arial',24,'bold'),text="You have already casted vote",fg='blue',anchor='w').pack(side="top", padx=3, pady=4)
+        self.button2=Button(C,font=('arial',18,'bold'),text="Retry",fg='green',command=self.dual_retry).place(relx=0.6, rely=0.4,anchor=SE)
+        master.mainloop()
+               
+    def dual_retry(self):
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Welcome(root2)
+                
+        
+class   Last_Window():
+
+    def __init__(self,master):
+        C = Canvas(master)
+        C.pack(expand=True, fill=BOTH)
+        image1 = ImageTk.PhotoImage(file="pic11.gif")
+        C.img=image1
+        C.create_image(0,0, anchor=NW, image=image1)
+        
+        self.master=master
+        self.master.geometry('800x480+0+0')
+        self.master.title('LAST WINDOW')
+        localtime=time.asctime(time.localtime(time.time()))
+        self.label1=Label(C,font=('arial',24,'bold'),text="Thank You For your particiation..",fg='blue',anchor='w').pack(side="top", padx=4, pady=4)
+        self.button2=Button(C,font=('arial',18,'bold'),text="Continue",fg='green',command=self.ret).place(relx=0.99, rely=0.6,anchor=SE)
+        self.button2=Button(C,font=('arial',18,'bold'),text="Results",fg='blue',command=self.res).place(relx=0.6, rely=0.3,anchor=SE)
+       
+        master.mainloop()
+                          #-------------------------------------------------------#-----------------------------------------#
+
+    def ret(self):
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Welcome(root2)
+        
+    def res(self):
+
+        root2=Toplevel(self.master)
+        self.master.withdraw()
+        myGUI=Results(root2)
+
+    
+def main():
+ root=Tk()
+ myGUIWelcome=Welcome(root)
+if __name__ == '__main__':
+    main()
